@@ -10,7 +10,7 @@ var from = "2012-05-01";
 var to = "2013-08-20";
 var cachePath = "./cache/";
 var queue = [];
-var port = 8080;
+var port = process.env.PORT || 8080;
 
 function order(arrA, arrB) {
     return parseInt(arrB[1], 10) - parseInt(arrA[1], 10) ;
