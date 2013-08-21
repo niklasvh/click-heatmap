@@ -1,9 +1,74 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title></title>
+    <title>Animated heatmap</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            background: rgb(24, 33, 61);
+            height: 100%;
+        }
+        p {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            text-shadow: 2px 2px 5px #000;
+            font-size: 50px;
+            color: #fff;
+            display: inline-block;
+        }
+        aside {
+            margin: 0 auto;
+            display: block;
+            text-align: center;
+        }
+        #page {
+            background:url(assets/page.png) no-repeat #fff;
+            width: 1340px;
+            height: 768px;
+            margin: 0 auto;
+            overflow: hidden;
+            display: block;
+        }
+    </style>
 </head>
 <body>
+<div id="page"></div>
+<aside>
+    <p class="date">Loading...</p>
+</aside>
+<script src="http://cdnjs.cloudflare.com/ajax/libs/bacon.js/0.4.2/Bacon.js"></script>
+<script src="/assets/drawing.js"></script>
+<script>
+    var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    var dateElement = document.querySelector(".date");
 
+    function setDateText(date) {
+        dateElement.textContent = months[date.getMonth()] + " " + date.getDate() + ", " + date.getFullYear();
+    }
+
+    var frameRequest = new Bacon.Bus();
+    var time = Bacon.constant(new Date()).map(setLastYear).sampledBy(frameRequest).map(addOneDay);
+
+    var size = Bacon.constant(50),
+        width = Bacon.constant(1366),
+        height = Bacon.constant(768),
+        host = Bacon.constant("hertzen.com"),
+        canvas = width.combine(height, createCanvas);
+
+    var circleCanvas = size.combine(size, createCanvas).map(getContext).combine(size, drawCircle);
+    var colorGradient = Bacon.constant(createCanvas(255, 1)).map(getContext).map(drawColorGradient).map(getImageData);
+
+    var dataStream = Bacon.combineWith(mapRequest, host).flatMap(GET);
+    var filteredData = Bacon.combineWith(filterDate, dataStream, time.map(formatDatePreviousMonth), time.map(formatDate));
+    Bacon.combineWith(drawClickData, size, canvas.map(getContext), filteredData, circleCanvas).combine(colorGradient, colorize).onValue(function() {});
+
+    canvas.assign(document.querySelector("#page"), "appendChild");
+    time.onValue(setDateText);
+    time.filter(pastToday).onValue(setLastYear);
+    (function animloop(){
+        frameRequest.push(true);
+        requestAnimFrame(animloop);
+    })();
+</script>
 </body>
 </html>

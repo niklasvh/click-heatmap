@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Animated heatmap</title>
+    <link rel="stylesheet" href="http://hertzen.com/css/bootstrap.css">
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            background: rgb(24, 33, 61);
+            height: 100%;
+        }
+        .date {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            text-shadow: 2px 2px 5px #000;
+            font-size: 50px;
+            color: #fff;
+            display: inline-block;
+            padding-bottom: 20px;
+        }
+        aside {
+            margin: 50px auto;
+            display: block;
+            text-align: center;
+        }
+
+        #page {
+            margin: 0 auto;
+        }
+
+        #preview {
+            margin: 0 auto;
+            padding: 0;
+            position: absolute;
+            z-index: 4;
+            display: block;
+            overflow: hidden;
+            border: 0;
+        }
+        canvas {
+            margin: 0 auto;
+            display: block;
+            position: absolute;
+            z-index: 99999;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+<div id="page"><iframe src="http://html2canvas.hertzen.com" id="preview" scrolling="no"></iframe></div>
+<aside>
+    <p class="date">Loading...</p>
+    <p class="resolutions">
+        <a class="btn btn-primary btn-large" href="#" data-width="1280" data-height="1024">1280x1024</a>
+        <a class="btn btn-primary btn-large" href="#" data-width="1366" data-height="768">1366x768</a>
+        <a class="btn btn-primary btn-large" href="#" data-width="1440" data-height="900">1440x900</a>
+        <a class="btn btn-primary btn-large" href="#" data-width="1680" data-height="1050">1680x1050</a>
+        <a class="btn btn-primary btn-large" href="#" data-width="1920" data-height="1080">1920x1080</a>
+    </p>
+</aside>
+<script src="http://cdnjs.cloudflare.com/ajax/libs/bacon.js/0.4.2/Bacon.js"></script>
+<script src="/assets/drawing.js"></script>
+<script>
+    var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    var dateElement = document.querySelector(".date");
+
+    function isLink(event) {
+        return (event.target.nodeName === "A");
+    }
+
+    var resolutionChange = Bacon.fromEventTarget(document.querySelector(".resolutions"), "click").filter(isLink).doAction(".preventDefault");
+    resolutionChange.onValue(selectButton);
+
+    function selectButton(event) {
+        var curr = document.querySelector(".disabled");
+        if (curr) {
+            curr.classList.remove("disabled");
+        }
+        event.target.classList.add("disabled");
+    }
+
+    function getWidth(event) {
+        return parseInt(event.target.getAttribute("data-width"), 10);
+    }
+
+    function getHeight(event) {
+        return parseInt(event.target.getAttribute("data-height"), 10);
+    }
+
+    function setDateText(date) {
+        dateElement.textContent = months[date.getMonth()] + " " + date.getDate() + ", " + date.getFullYear();
+    }
+
+    var frameRequest = new Bacon.Bus();
+    var time = Bacon.constant(new Date()).map(setLastYear).sampledBy(frameRequest).map(addOneDay);
+
+    var size = Bacon.constant(50),
+        width = resolutionChange.map(getWidth),
+        height = resolutionChange.map(getHeight),
+        host = Bacon.constant("html2canvas.hertzen.com"),
+        canvas = width.combine(height, createCanvas).take(1);
+    host.onValue(setIframeSrc);
+
+    width.zip(height, setContentSize).onValue(function() {});
+
+    var circleCanvas = size.combine(size, createCanvas).map(getContext).combine(size, drawCircle);
+    var colorGradient = Bacon.constant(createCanvas(255, 1)).map(getContext).map(drawColorGradient).map(getImageData);
+
+    var dataStream = Bacon.combineWith(mapRequest, host, width.zip(height, mapResolution)).flatMap(GET);
+    var filteredData = Bacon.combineWith(filterDate, dataStream, time.map(formatDatePreviousWeek), time.map(formatDate));
+    canvas.assign(document.querySelector("#page"), "appendChild");
+    Bacon.combineWith(drawClickData, size, canvas.map(getContext), filteredData, circleCanvas).combine(colorGradient, colorize).onValue(function() {});
+
+    time.onValue(setDateText);
+    time.filter(pastToday).onValue(setLastYear);
+
+    document.querySelector("a[data-width='1366'][data-height='768']").click();
+
+    (function animloop(){
+        frameRequest.push(true);
+        requestAnimFrame(animloop);
+    })();
+</script>
+</body>
+</html>
