@@ -37,9 +37,6 @@ function drawClickData(size, ctx, clicks, circle) {
     clicks.forEach(function(click) {
         var hits = click[3];
         while(hits--) {
-            /*    if (click[3] < 1920) {
-             coords[0] -= (1920 - click[3]) / 2;
-             } */
             ctx.drawImage(circle, click[0] - size / 2, click[1] - size / 2);
         }
     });
