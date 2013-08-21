@@ -1,0 +1,43 @@
+{
+  "name": "heatmap.js",
+  "description": "Click heatmap",
+  "version": "0.1.0",
+  "homepage": "https://github.com/niklasvh/click-heatmap",
+  "author": {
+    "name": "Niklas von Hertzen",
+    "email": "niklasvh@gmail.com",
+    "url": "http://hertzen.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:niklasvh/click-heatmap.git"
+  },
+  "bugs": {
+    "url": "https://github.com/niklasvh/click-heatmap/issues"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "https://github.com/niklasvh/click-heatmap/blob/master/LICENSE-MIT"
+    }
+  ],
+  "main": "lib/heatmap",
+  "engines": {
+    "node": ">= 0.6.0"
+  },
+  "devDependencies": {
+    "grunt-contrib-concat": "~0.1.2",
+    "grunt-contrib-uglify": "~0.1.1",
+    "grunt-contrib-jshint": "~0.1.1",
+    "grunt-contrib-nodeunit": "~0.1.2",
+    "grunt-contrib-watch": "~0.2.0",
+    "grunt": "~0.4.1"
+  },
+  "keywords": [],
+  "dependencies": {
+    "googleapis": "~0.2.12-alpha",
+    "jwt-sign": "~0.1.0",
+    "baconjs": "~0.6.13",
+    "express": "~3.3.5"
+  }
+}
