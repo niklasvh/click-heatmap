@@ -1,6 +1,6 @@
 {
   "name": "heatmap.js",
-  "description": "Click heatmap",
+  "description": "Click heatmaps with Google Analytics",
   "version": "0.1.0",
   "homepage": "https://github.com/niklasvh/click-heatmap",
   "author": {
