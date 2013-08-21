@@ -83,6 +83,8 @@ function runQueue() {
     var item = queue.pop();
     if (item) {
         Bacon.combineWith(writeResponse, heatmap.request(item).map(formatRows), item).onValue(runQueue);
+    } else {
+        combineResolutions("hertzen.com");
     }
 }
 
@@ -102,8 +104,6 @@ function combineResolutions(host) {
 
     write(cachePath + host + "-all.json", results);
 }
-
-combineResolutions("hertzen.com");
 
 Bacon.fromArray(hosts).flatMap(resolutionRequestsForHosts).doAction(addQueue).onEnd(runQueue);
 
